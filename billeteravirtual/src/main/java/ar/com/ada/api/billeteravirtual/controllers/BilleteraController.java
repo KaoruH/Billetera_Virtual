@@ -20,20 +20,32 @@ public class BilleteraController {
     @Autowired
     UsuarioService usuarioService;
 
-    /*
-     * webMetodo 1: consultar saldo: GET URL:/billeteras/{id}/saldos
-     */
+    // Los elementos entre {} siempre son @PathVariable y estan explicitos en la
+    // url. Son dada por front.
+    // Método que consulta el saldo según el ID de una cuenta con la moneda
+    // especificada
 
     @GetMapping("/billeteras/{id}/saldos/{moneda}")
     public ResponseEntity<?> consultarSaldo(@PathVariable Integer id, @PathVariable String moneda) {
 
-        SaldoResponse saldo = new SaldoResponse();
+        SaldoResponse saldo = new SaldoResponse(); // es un modelo de respuesta para traer sólo informaciones
+                                                   // específicas (y no todo)
 
-        saldo.saldo = billeteraService.consultarSaldo(id, moneda);
-        saldo.moneda = moneda;
+        saldo.saldo = billeteraService.consultarSaldo(id, moneda); // pide a service que busque el saldo de acuerdo con
+                                                                   // Id y moneda. Puede que no exista.
+        saldo.moneda = moneda; // la moneda ya tiene por pathvariable
 
         return ResponseEntity.ok(saldo);
     }
+
+    /*
+     * webMetodo 1: consultar saldo: GET URL:/billeteras/{id}/saldos
+     * 
+     * Este método primero busca la billetera por el ID, crea una lista de
+     * SaldoResponde (un modelo sólo con las informaciones deseadas) y recorre la
+     * lista de cuentas de la billetera, agregando a la lista creada los saldos
+     * encontrados y devolvendo una lista con estos saldos
+     */
 
     @GetMapping("/billeteras/{id}/saldos")
     public ResponseEntity<List<SaldoResponse>> consultarSaldo(@PathVariable Integer id) {
@@ -58,6 +70,12 @@ public class BilleteraController {
     /*
      * webMetodo 2: cargar saldo: POST URL:/billeteras/{id}/recargas requestBody: {
      * "moneda": "importe": }
+     * 
+     * Este método carga el saldo llamando al método cargarSaldo por donde pasa el
+     * importe, la moneda (ambos del RequestBody con el modelo CargaRequest), el id
+     * (no es necesario buscar la billetera antes acá), el concepto (que es) y el
+     * detalle (que es el motivo). El Transaccion Response es como un
+     * GenericResponse, pero hecho especificamente para las transacciones.
      */
 
     @PostMapping("/billeteras/{id}/recargas")
@@ -80,6 +98,8 @@ public class BilleteraController {
      * 
      * enviar saldo: POST URL:/billetera/{id}/envios requestBody: { "moneda":
      * "importe": "email": "motivo": "detalleDelMotivo": }
+     * 
+     * Envia saldo al id especificado. 
      */
 
     @PostMapping("/billeteras/{id}/envios")

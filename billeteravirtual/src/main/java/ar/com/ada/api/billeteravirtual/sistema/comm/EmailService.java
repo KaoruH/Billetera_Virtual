@@ -3,7 +3,10 @@ package ar.com.ada.api.billeteravirtual.sistema.comm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import kong.unirest.*;
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
+import kong.unirest.Unirest;
+import kong.unirest.UnirestException;
 
 /**
  * EmailService
@@ -28,7 +31,6 @@ public class EmailService {
     @Value("${emailSettings.enabled}")
     public boolean enabled;
 
-
     // Basico
     public void SendEmail(String email, String subject, String message) throws UnirestException {
 
@@ -37,10 +39,7 @@ public class EmailService {
 
         JsonNode r;
         HttpResponse<JsonNode> request = Unirest.post("https://api.mailgun.net/v3/" + this.domain + "/messages")
-                .basicAuth("api", this.apiKey)
-                .field("from", this.from)
-                .field("to", email)
-                .field("subject", subject)
+                .basicAuth("api", this.apiKey).field("from", this.from).field("to", email).field("subject", subject)
                 .field("text", message).asJson();
 
         r = request.getBody();
