@@ -12,40 +12,40 @@ public class Transaccion {
 	@Id
 	@Column(name = "transaccion_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer transaccionId;
+	private Integer transaccionId;
 
 	@ManyToOne
 	@JoinColumn(name = "cuenta_id", referencedColumnName = "cuenta_id")
-    private Cuenta cuenta;
+	private Cuenta cuenta;
 
-    private Date fecha;
+	private Date fecha;
 
 	@Column(name = "estado_id")
-    private Integer estadoId;
+	private Integer estadoId;
 
-    private BigDecimal importe;
+	private BigDecimal importe;
 
-    private String moneda;
+	private String moneda;
 
 	@Column(name = "tipo_operacion")
-    private Integer tipoOperacion;
+	private TipoTransaccionEnum tipoOperacion;
 
 	@Column(name = "concepto_operacion")
-    private String conceptoOperacion;
+	private String conceptoOperacion;
 
-    private String detalle;
+	private String detalle;
 
 	@Column(name = "de_usuario")
-    private Integer deUsuarioId;
+	private Integer deUsuarioId;
 
 	@Column(name = "a_usuario")
-    private Integer aUsuarioId;
+	private Integer aUsuarioId;
 
 	@Column(name = "de_cuenta")
-    private Integer deCuentaId;
+	private Integer deCuentaId;
 
 	@Column(name = "a_cuenta")
-    private Integer aCuentaId;
+	private Integer aCuentaId;
 
 	public Integer getTransaccionId() {
 		return transaccionId;
@@ -95,11 +95,11 @@ public class Transaccion {
 		this.moneda = moneda;
 	}
 
-	public Integer getTipoOperacion() {
+	public TipoTransaccionEnum getTipoOperacion() {
 		return tipoOperacion;
 	}
 
-	public void setTipoOperacion(Integer tipoOperacion) {
+	public void setTipoOperacion(TipoTransaccionEnum tipoOperacion) {
 		this.tipoOperacion = tipoOperacion;
 	}
 
@@ -149,6 +149,56 @@ public class Transaccion {
 
 	public void setaCuentaId(Integer aCuentaId) {
 		this.aCuentaId = aCuentaId;
+	}
+
+	/***
+	 * En este caso es un ENUMERADO con numeracion default En JAVA. Estos comienzan
+	 * desde 0 y si intercambiamos el orden el 0 pasa a ser siempre el primero. Si
+	 * quisieramos tener uno customizado, en JAVA es mas complejo(se ahoga en un
+	 * vaso de agua)
+	 */
+	public enum TipoTransaccionEnum {
+		SALIENTE, // Este es siempre 0
+		ENTRANTE // Este es siempre 1
+	}
+
+	public enum ResultadoTransaccionEnum {
+		ERROR_IMPORTE_NEGATIVO, // Este es siempre 0
+		INICIADA, // Este es siempre 1
+		SALDO_INSUFICIENTE, BILLETERA_DESTINO_NO_ENCONTRADA, BILLETERA_ORIGEN_NO_ENCONTRADA, LIMITE_DIARIO_ALCANZADO,
+		CUENTA_ORIGEN_INEXISTENTE, CUENTA_DESTINO_INEXITENTE, SE_QUIERE_PAGAR_A_SI_MISMO, EMAIL_DESTINO_INEXISTENTE
+	}
+
+	/***
+	 * En este caso es un ENUMERADO con numeracion customizada En JAVA, los
+	 * enumerados con numeros customizados deben tener un constructor y un
+	 * comparador para poder funcionar correctamente
+	 */
+	// Este es un ejemplo de enumerado de estados customizados.
+	public enum EstadoTransaccionEnum {
+		PENDIENTE(0), ENVIADA(1), RECIBIDA(2), EJECUTADA(4), FALTA_FONDOS(80), ERROR_GENERAL(99);
+
+		private final int value;
+
+		// NOTE: Enum constructor tiene que estar en privado
+		private EstadoTransaccionEnum(int value) {
+			this.value = value;
+		}
+
+		public int getValue() {
+			return value;
+		}
+
+		public static EstadoTransaccionEnum parse(int id) {
+			EstadoTransaccionEnum status = null; // Default
+			for (EstadoTransaccionEnum item : EstadoTransaccionEnum.values()) {
+				if (item.getValue() == id) {
+					status = item;
+					break;
+				}
+			}
+			return status;
+		}
 	}
 
 }

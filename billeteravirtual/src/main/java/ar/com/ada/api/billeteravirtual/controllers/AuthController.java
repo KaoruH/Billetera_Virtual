@@ -3,17 +3,13 @@ package ar.com.ada.api.billeteravirtual.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import ar.com.ada.api.billeteravirtual.models.request.LoginRequest;
-import ar.com.ada.api.billeteravirtual.models.request.RegistrationRequest;
-import ar.com.ada.api.billeteravirtual.models.response.JwtResponse;
-import ar.com.ada.api.billeteravirtual.models.response.RegistrationResponse;
+import ar.com.ada.api.billeteravirtual.entities.Usuario;
+import ar.com.ada.api.billeteravirtual.models.request.*;
+import ar.com.ada.api.billeteravirtual.models.response.*;
 import ar.com.ada.api.billeteravirtual.security.jwt.JWTTokenUtil;
-import ar.com.ada.api.billeteravirtual.services.JWTUserDetailsService;
-import ar.com.ada.api.billeteravirtual.services.UsuarioService;;
+import ar.com.ada.api.billeteravirtual.services.*;
 
 /**
  * AuthController
@@ -32,13 +28,17 @@ public class AuthController {
 
     @Autowired
     private JWTUserDetailsService userDetailsService;
-    //Auth : authentication ->
+
+    // Auth : authentication -> / crea un usuario
     @PostMapping("auth/register")
     public ResponseEntity<RegistrationResponse> postRegisterUser(@RequestBody RegistrationRequest req) {
         RegistrationResponse r = new RegistrationResponse();
         // aca creamos la persona y el usuario a traves del service.
-        //Insertar codigo aqui
-        //usuarioService.crearUsuario(parametros de req);
+        // usuarioService.crearUsuario(parametros de req);
+
+        usuarioService.crearUsuario(req.fullName, req.country, req.identificationType, req.identification,
+                req.birthDate, req.email, req.password);
+
         r.isOk = true;
         r.message = "Te registraste con exitoooo!!!!!!!";
         r.userId = 0; // <-- AQUI ponemos el numerito de id para darle a front!
@@ -46,7 +46,7 @@ public class AuthController {
 
     }
 
-    @PostMapping("auth/login") // probando nuestro login
+    @PostMapping("auth/login") // probando nuestro login / a partir de un usuario ya existente, crea un token
     public ResponseEntity<?> createAuthenticationToken(@RequestBody LoginRequest authenticationRequest)
             throws Exception {
 
@@ -56,7 +56,18 @@ public class AuthController {
 
         String token = jwtTokenUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new JwtResponse(token));
+        // Cambio para que devuelva el full perfil
+        Usuario u = usuarioService.buscarPorUsername(authenticationRequest.username);
+
+        LoginResponse r = new LoginResponse();
+        r.id = u.getUsuarioId();
+        r.billeteraId = u.getPersona().getBilletera().getBilleteraId();
+        r.username = authenticationRequest.username;
+        r.email = u.getEmail();
+        r.token = token;
+
+        return ResponseEntity.ok(r);
+        // return ResponseEntity.ok(new JwtResponse(token));
 
     }
 
